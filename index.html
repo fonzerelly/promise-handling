@@ -1,0 +1,52 @@
+<html>
+    <body>
+        <h1>Hier wird untersucht wie verschiedene Möglichkeiten mit Promises umzugehen sich auswirken.
+        Bitte kurz warten:</h1>
+        <h3>Ineffective: <span id="ineffectiveResult"></span></h3>
+        <h3>ShiftedAwait: <span id="shiftedAwaitResult"></span></h3>
+        <h3>PromiseAll: <span id="promiseAllResult"></span></h3>
+        <script>
+            const createTimeoutPromiseFn = (duration, result) => {
+                return () => {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => { resolve(result) }, duration)
+                    })
+                }
+            }
+            const foo = createTimeoutPromiseFn(5000, 'foo')
+            const bar = createTimeoutPromiseFn(2000, 'bar')
+
+            const ineffective = async () => {
+                const start = new Date().getTime()
+                const f = await foo()
+                const b = await bar()
+
+                console.assert('foobar' === f + b)
+                document.getElementById('ineffectiveResult').innerHTML = new Date().getTime() - start
+            }
+
+            const shiftedAwait = async () => {
+                const start = new Date().getTime();
+                const f = foo();
+                const b = bar();
+
+                console.assert('foobar' === (await f) + (await b));
+                document.getElementById('shiftedAwaitResult').innerHTML = new Date().getTime() - start;
+            }
+            
+            const promiseAll = async () => {
+                const start = new Date().getTime();
+                const f = foo();
+                const b = bar();
+
+                const all = Promise.all([f, b]).then((results) => {
+                    console.assert('foobar' === results.join(''));
+                    document.getElementById('promiseAllResult').innerHTML = new Date().getTime() - start;
+                })
+            }
+            ineffective();
+            shiftedAwait();
+            promiseAll();
+        </script>
+    </body>
+</html>
